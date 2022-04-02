@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Example Infrastructure and Goals
+# For the purposes of this article, we will assume the following:
+#
+# - We have two servers which will be designated as our DNS name servers. We will refer to these as ns1 and ns2 in this guide.
+# - We have two additional client servers that will be using the DNS infrastructure we create. We will call these host1 and host2 in this guide. You can add as many as you’d like for your infrastructure.
+# - All of these servers exist in the same datacenter. We will assume that this is the nyc3 datacenter.
+# - All of these servers have private networking enabled and are on the 10.128.0.0/16 subnet (you will likely have to adjust this for your servers).
+# - All servers are connected to a project that runs on example.com. Since our DNS system will be entirely internal and private, you do not have to purchase a domain name. However, using a domain you own may help avoid conflicts with publicly routable domains.
+
+Vagrant.configure("2") do |config|
+  boxes = [
+    {
+      # ns1- Primary DNS Server
+      :name => "ns1.nyc3.example.com", #FQDN of NameServer1
+      :box => "ubuntu/bionic64",
+      :ram => 1024,
+      :vcpu => 1,
+      :ip => "10.128.10.11"
+    },
+    {
+      # ns2- Secondary DNS Server
+      :name => "ns2.nyc3.example.com", #FQDN of NameServer2
+      :box => "ubuntu/bionic64",
+      :ram => 1024,
+      :vcpu => 1,
+      :ip => "10.128.20.12"
+    },
+    {
+      # host1 - Generic Host 1
+      :name => "host1.nyc3.example.com",    #FQDN of HOST1
+      :box => "ubuntu/bionic64",
+      :ram => 1024,
+      :vcpu => 1,
+      :ip => "10.128.100.101"
+    },
+    {
+      # host2 - Generic Host 2
+      :name => "host2.nyc3.example.com",    #FQDN of HOST2
+      :box => "ubuntu/bionic64",
+      :ram => 1024,
+      :vcpu => 1,
+      :ip => "10.128.100.102"
+    }
+  ]
+
+
+  # Provision each of the VMs.
+  boxes.each do |opts|
+    config.vm.define opts[:name] do |config|
+      config.vm.box = opts[:box]
+      config.vm.hostname = opts[:name]
+      config.vm.network :private_network, ip: opts[:ip]
+      config.vm.provider :virtualbox do |v|
+        v.memory = opts[:ram]
+        v.cpus = opts[:vcpu]
+      end
+   end
+  end
+end
